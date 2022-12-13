@@ -1,13 +1,13 @@
 import * as R from 'ramda';
-import axios from 'axios';
 const apiAdress = "f1983c3d2110851c98f30164350fdbc7";
 
 const MSGS = {
   SHOW_FORM: 'SHOW_FORM',
   weather_INPUT: 'weather_INPUT',
-  DATA_GET: 'DATA_GET',
   SAVE_weather: 'SAVE_weather',
   DELETE_weather: 'DELETE_weather',
+  LOAD_TIME: "LOAD_TIME",
+  UPDATE_TIME: "UPDATE_TIME"
 };
 
 export function showFormMsg(showForm) {
@@ -24,7 +24,8 @@ export function weatherInputMsg(description) {
   };
 }
 
-export const getDataMsg = { type: MSGS.DATA_GET };
+export const loadTime = { type: MSGS.LOAD_TIME };
+export const updateTimeMSG = (currentTime) => ({ type: MSGS.UPDATE_TIME, currentTime });
 export const saveweatherMsg = { type: MSGS.SAVE_weather };
 
 export function deleteweatherMsg(id) {
@@ -40,6 +41,18 @@ function update(msg, model) {
       const { showForm } = msg;
       return { ...model, showForm, description: '', calories: 0 };
     }
+    case MSGS.LOAD_TIME: {
+      return {
+        model,
+        command: {
+          url: "https://api.openweathermap.org/data/2.5/weather?q="+ model.description +"&units=metric&appid=" + apiAdress,
+        },
+      };
+    }
+    case MSGS.UPDATE_TIME: {
+      const { currentTime } = msg;
+      return { ...model, temp:currentTime.temp, low:currentTime.temp_min, high:currentTime.temp_max };
+    }
     case MSGS.weather_INPUT: {
       const { description } = msg;
       return { ...model, description };
@@ -53,8 +66,8 @@ function update(msg, model) {
     case MSGS.DELETE_weather: {
       const { id } = msg;
       const weathers = R.filter(
-        weather => weather.id !== id
-      , model.weathers);
+        weather => weather.id !== id, 
+        model.weathers);
       return { ...model, weathers };
     }
   }
@@ -63,22 +76,9 @@ function update(msg, model) {
 
 function add(msg, model) {
     const { nextId, description, temp, low, high } = model;
-    const url = getUrl(description);
-    const weather = { id: nextId, description, temp: getData(url), low, high};
+    const weather = { id: nextId, description, temp, low, high};
     const weathers = [...model.weathers, weather]
     return {...model, weathers, nextId: nextId + 1, description: '', showForm: false};
-}
-
-function getUrl (townName) {
-    return "https://api.openweathermap.org/data/2.5/weather?q=" + townName + "&units=metric&appid=" + apiAdress;
-}
-async function getData (url) {
-    const response = await axios.get(url)
-        .then((resp) => {
-            return resp.data
-        });
-    console.log(response.main);
-    return response.main;
 }
 
 export default update;

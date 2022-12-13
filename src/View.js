@@ -1,7 +1,7 @@
 import hh from "hyperscript-helpers";
 import { h } from "virtual-dom";
 import * as R from "ramda";
-import { showFormMsg, weatherInputMsg, getDataMsg, saveweatherMsg, deleteweatherMsg } from "./Update";
+import { showFormMsg, weatherInputMsg, loadTime, updateTime, saveweatherMsg, deleteweatherMsg } from "./Update";
 
 const btnStyle = "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded";
 const cellStyle = "px-1 py-2 min-w-[100px]";
@@ -15,18 +15,11 @@ function cell(tag, className, value, id = 0) {
 const tableHeader = thead([tr([cell(th, "text-left", "Weather"), cell(th, "text-left", "Temp °C"), cell(th, "text-left", "Low °C"), cell(th, "text-left", "High °C"), cell(th, "", "")])]);
 
 function weatherRow(dispatch, className, weathers) {
-    let data = 0;
-    const tim = weathers.temp.then(function(value){ data = value});
-    setTimeout(function() {    
-        document.getElementById("temp"+weathers.id).innerText = data.temp;
-        document.getElementById("temp_max"+weathers.id).innerText = data.temp_max;
-        document.getElementById("temp_min"+weathers.id).innerText = data.temp_min;
-    }, 100);
         return tr({ className }, [
         cell(td, cellStyle, weathers.description),
-        cell(td, cellStyle, data, "temp"+weathers.id),
-        cell(td, cellStyle, data, "temp_max"+weathers.id),
-        cell(td, cellStyle, data, "temp_min"+weathers.id),
+        cell(td, cellStyle, weathers.temp),
+        cell(td, cellStyle, weathers.low),
+        cell(td, cellStyle, weathers.high),
         cell(td, cellStyle + "text-right", [
         button(
             {
@@ -77,7 +70,7 @@ function fieldSet(labelText, inputValue, placeholder, oninput) {
 
 function buttonSet(dispatch) {
   return div({ className: "flex gap-4 justify-center" }, [
-    button({className: `${btnStyle} bg-green-500 hover:bg-green-700`, type: "submit", onclick: () => dispatch(saveweatherMsg)}, "Save"),
+    button({className: `${btnStyle} bg-green-500 hover:bg-green-700`, type: "submit", onclick: () => dispatch(loadTime)}, "Save"),
     button({className: `${btnStyle} bg-red-500 hover:bg-red-700`, type: "button", onclick: () => dispatch(showFormMsg(false))},  "Cancel")
   ]);
 }
